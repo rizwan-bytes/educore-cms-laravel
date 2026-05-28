@@ -4,6 +4,8 @@ use App\Http\Controllers\Admin\AttendanceController;
 use App\Http\Controllers\Admin\ClassController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\NoticeController;
+use App\Http\Controllers\Admin\StaffAttendanceController;
+use App\Http\Controllers\Admin\StaffController;
 use App\Http\Controllers\Admin\StudentController;
 use App\Http\Controllers\Admin\SubjectController;
 use App\Http\Controllers\Admin\TeacherController;
@@ -99,7 +101,23 @@ Route::prefix('admin')
         Route::get('/at-risk',            $ph)->name('at-risk.index');
         Route::get('/transcripts',        $ph)->name('transcripts.index');
 
-        // ── HR ──────────────────────────────────────────────────
+        // ── HR / Staff ───────────────────────────────────────────
+        // Staff CRUD
+        Route::get('/staff',               [StaffController::class, 'index'])->name('staff.index');
+        Route::get('/staff/data',          [StaffController::class, 'data'])->name('staff.data');
+        Route::post('/staff',              [StaffController::class, 'store'])->name('staff.store');
+        Route::get('/staff/{id}/edit',     [StaffController::class, 'edit'])->name('staff.edit');
+        Route::put('/staff/{id}',          [StaffController::class, 'update'])->name('staff.update');
+        Route::delete('/staff/{id}',       [StaffController::class, 'destroy'])->name('staff.destroy');
+        Route::patch('/staff/{id}/toggle', [StaffController::class, 'toggleStatus'])->name('staff.toggle');
+
+        // Staff Attendance
+        Route::get('/staff-attendance',          [StaffAttendanceController::class, 'index'])->name('staff-attendance.index');
+        Route::get('/staff-attendance/data',     [StaffAttendanceController::class, 'data'])->name('staff-attendance.data');
+        Route::get('/staff-attendance/mark',     [StaffAttendanceController::class, 'mark'])->name('staff-attendance.mark');
+        Route::get('/staff-attendance/members',  [StaffAttendanceController::class, 'members'])->name('staff-attendance.members');
+        Route::post('/staff-attendance/store',   [StaffAttendanceController::class, 'store'])->name('staff-attendance.store');
+
         Route::get('/leaves',             $ph)->name('leaves.index');
         Route::get('/payroll',            $ph)->name('payroll.index');
         Route::get('/ptm',                $ph)->name('ptm.index');

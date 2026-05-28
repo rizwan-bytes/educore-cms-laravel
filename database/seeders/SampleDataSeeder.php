@@ -4,6 +4,8 @@ namespace Database\Seeders;
 
 use App\Models\Attendance;
 use App\Models\ClassRoom;
+use App\Models\Staff;
+use App\Models\StaffAttendance;
 use App\Models\Student;
 use App\Models\Teacher;
 use App\Models\User;
@@ -134,7 +136,9 @@ class SampleDataSeeder extends Seeder
         ];
 
         $studentCount = 0;
-        $rollCounter  = 1001;
+        // Start roll counter after the highest existing roll_no to avoid collisions on re-run
+        $maxRoll = Student::selectRaw("MAX(CAST(SUBSTRING(roll_no, 5) AS UNSIGNED)) as max_roll")->value('max_roll');
+        $rollCounter = $maxRoll ? ($maxRoll + 1) : 1001;
 
         foreach ($classes as $class) {
             // 6 students per class (3 male, 3 female)
@@ -172,7 +176,7 @@ class SampleDataSeeder extends Seeder
                 }
             }
         }
-        $this->command->info("  ✅ {$studentCount} students created");
+        $this->command->info("  ✅ {$studentCount} students created (skipped existing)");
 
         // ── Notices ───────────────────────────────────────────────────────
         $noticesData = [
@@ -235,6 +239,76 @@ class SampleDataSeeder extends Seeder
         }
         $this->command->info("  ✅ {$attCount} attendance records created");
 
+        // ── Staff ─────────────────────────────────────────────────────────
+        $this->command->info('  Seeding staff...');
+
+        $adminId = User::where('role', 'admin')->value('id') ?? 1;
+
+        $staffData = [
+            // Administrative
+            ['name' => 'Mr. Tariq Mahmood',   'phone' => '0321-1234567', 'cnic' => '35201-1234567-1', 'department' => 'administrative', 'designation' => 'School Secretary',    'joining_date' => '2020-03-01', 'salary' => 45000],
+            ['name' => 'Mrs. Sana Aslam',     'phone' => '0311-2345678', 'cnic' => '35201-2345678-2', 'department' => 'administrative', 'designation' => 'Receptionist',         'joining_date' => '2021-07-15', 'salary' => 35000],
+            ['name' => 'Mr. Bilal Khan',       'phone' => '0333-3456789', 'cnic' => '35202-3456789-3', 'department' => 'administrative', 'designation' => 'Office Clerk',         'joining_date' => '2022-01-10', 'salary' => 30000],
+            // Finance
+            ['name' => 'Mr. Naveed Ahmed',    'phone' => '0300-4567890', 'cnic' => '35201-4567890-4', 'department' => 'finance',          'designation' => 'Accountant',           'joining_date' => '2019-08-01', 'salary' => 55000],
+            ['name' => 'Mrs. Rabia Naz',      'phone' => '0345-5678901', 'cnic' => '35202-5678901-5', 'department' => 'finance',          'designation' => 'Cashier',              'joining_date' => '2021-04-01', 'salary' => 40000],
+            // Academic Support
+            ['name' => 'Mr. Asif Raza',       'phone' => '0321-6789012', 'cnic' => '35201-6789012-6', 'department' => 'academic_support', 'designation' => 'Librarian',            'joining_date' => '2020-06-01', 'salary' => 38000],
+            ['name' => 'Mr. Usman Ali',       'phone' => '0312-7890123', 'cnic' => '35202-7890123-7', 'department' => 'academic_support', 'designation' => 'Lab Assistant',        'joining_date' => '2022-03-15', 'salary' => 32000],
+            // Support
+            ['name' => 'Mr. Ghulam Hussain',  'phone' => '0333-8901234', 'cnic' => '35201-8901234-8', 'department' => 'support',          'designation' => 'Security Guard',       'joining_date' => '2018-01-01', 'salary' => 28000],
+            ['name' => 'Mr. Ali Akbar',       'phone' => '0344-9012345', 'cnic' => '35202-9012345-9', 'department' => 'support',          'designation' => 'Office Boy (Peon)',    'joining_date' => '2019-05-01', 'salary' => 25000],
+            ['name' => 'Mr. Rehman Gul',      'phone' => '0300-0123456', 'cnic' => '35203-0123456-0', 'department' => 'support',          'designation' => 'School Driver',        'joining_date' => '2020-09-01', 'salary' => 35000],
+        ];
+
+        $staffIds = [];
+        foreach ($staffData as $s) {
+            // Skip if already exists
+            if (Staff::where('cnic', $s['cnic'])->exists()) {
+                $staffIds[] = Staff::where('cnic', $s['cnic'])->value('id');
+                continue;
+            }
+            $staff = Staff::create(array_merge($s, ['status' => true, 'is_seeded' => true]));
+            $staffIds[] = $staff->id;
+        }
+
+        $this->command->info('  ✅ ' . count($staffData) . ' staff members created');
+
+        // ── Staff Attendance (last 30 working days) ────────────────────────
+        $this->command->info('  Seeding staff attendance...');
+        $staffAttCount = 0;
+        $workingDays = [];
+        $d = Carbon::today()->subDay();
+        while (count($workingDays) < 30) {
+            if (!in_array($d->dayOfWeek, [0, 6])) { // skip Sunday(0), Saturday(6)
+                $workingDays[] = $d->format('Y-m-d');
+            }
+            $d->subDay();
+        }
+
+        foreach ($workingDays as $date) {
+            foreach ($staffIds as $staffId) {
+                if (StaffAttendance::where('staff_id', $staffId)->where('date', $date)->exists()) {
+                    continue;
+                }
+                // 80% Present, 10% Absent, 5% Late, 3% Half_Day, 2% Leave
+                $rand = rand(1, 100);
+                $status = $rand <= 80 ? 'Present'
+                    : ($rand <= 90 ? 'Absent'
+                    : ($rand <= 95 ? 'Late'
+                    : ($rand <= 98 ? 'Half_Day' : 'Leave')));
+
+                StaffAttendance::create([
+                    'staff_id'  => $staffId,
+                    'date'      => $date,
+                    'status'    => $status,
+                    'marked_by' => $adminId,
+                ]);
+                $staffAttCount++;
+            }
+        }
+        $this->command->info("  ✅ {$staffAttCount} staff attendance records created");
+
         $this->command->info('');
         $this->command->info('✅ Sample data seeded successfully!');
         $this->command->info('   Classes: ' . count($classes));
@@ -242,5 +316,7 @@ class SampleDataSeeder extends Seeder
         $this->command->info('   Students: ' . $studentCount . ' (password: student123)');
         $this->command->info('   Notices: ' . count($noticesData));
         $this->command->info('   Attendance records: ' . $attCount);
+        $this->command->info('   Staff: ' . count($staffData));
+        $this->command->info('   Staff attendance records: ' . $staffAttCount);
     }
 }

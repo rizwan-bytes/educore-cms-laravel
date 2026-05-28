@@ -128,8 +128,16 @@
     <span>{{ __('common.transcripts') }}</span>
 </a>
 
-{{-- HR --}}
+{{-- HR / Staff --}}
 <div class="nav-section">{{ __('common.hr') }}</div>
+<a href="{{ route('admin.staff.index') }}" class="nav-item {{ $a('admin.staff') }}">
+    <i class="fas fa-users-gear"></i>
+    <span>{{ __('staff.title') }}</span>
+</a>
+<a href="{{ route('admin.staff-attendance.index') }}" class="nav-item {{ $a('admin.staff-attendance') }}">
+    <i class="fas fa-user-clock"></i>
+    <span>{{ __('staff.attendance') }}</span>
+</a>
 <a href="{{ route('admin.leaves.index') }}" class="nav-item {{ $a('admin.leaves') }}">
     <i class="fas fa-calendar-minus"></i>
     <span>{{ __('common.leave_management') }}</span>
