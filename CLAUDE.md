@@ -13,8 +13,8 @@
 
 **Project:** EduCore CMS — Full Laravel replica of PHP/MySQL original
 **Reference:** `../educore-cms/` (original PHP project — logic reference)
-**Status:** 🔴 Phase 2 IN PROGRESS — Students ✅ Teachers ✅ Classes ✅ Subjects ✅ Notices ✅ Attendance ✅ Teacher+Student Portals ✅ Git ✅
-**Last Session:** Teacher+Student portals fully built — Teacher dashboard (real stats, charts), Teacher attendance (restricted to own subjects/classes, 403 guard), Teacher notices; Student dashboard (personal stats, 7-day chart, 75% threshold), Student attendance (DataTable + 6-month chart), Student notices; Subjects updated with teacher assignment FK + admin UI dropdown; DataTables spinner fix; SampleDataSeeder updated to assign teachers by specialization; lang files completed (en+ur subjects 4 new keys); Git initialized + pushed to GitHub (197 files)
+**Status:** 🔴 Phase 2 IN PROGRESS — Students ✅ Teachers ✅ Classes ✅ Subjects ✅ Notices ✅ Attendance ✅ Teacher+Student Portals ✅ Attendance Mode ✅ Git ✅
+**Last Session:** Attendance Mode per class implemented — Admin sets class_incharge or subject_wise mode per class; classes table: attendance_mode + incharge_teacher_id; ClassRoom model helpers (isClassIncharge/isSubjectWise/canMarkAttendance); Teacher model assignedClasses() updated (incharge + subject-wise), canMarkAttendance() guard; Admin Classes view: mode toggle cards (visual radio), incharge teacher dropdown; Admin Attendance: subject column + subject filter; Teacher attendance view: mode-aware (subject dropdown for subject_wise, mode banners); Teacher AttendanceController: full 403 security on both modes; lang en+ur classes+attendance updated (17 new keys); Git pushed (6f9fa1c)
 **Next Task:** Phase 2 — Exams + Results module (create exam, enter marks per student, auto grade via AppHelpers::calcGrade)
 
 ### Current Phase:
