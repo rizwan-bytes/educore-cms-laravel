@@ -13,8 +13,8 @@
 
 **Project:** EduCore CMS — Full Laravel replica of PHP/MySQL original
 **Reference:** `../educore-cms/` (original PHP project — logic reference)
-**Status:** 🔴 Phase 2 IN PROGRESS — Students ✅ Teachers ✅ Classes ✅ Subjects ✅ Notices ✅ Attendance ✅
-**Last Session:** Attendance module complete — AttendanceController (5 routes: index/data/mark/students/store), history DataTable with class+date+status filters, mark page with bulk P/A/L grid, live counters, already-marked detection, AttendanceSeeder (2130 records, 30 working days), DataTables spinner fix (display:flex!important removed), lang files en+ur updated
+**Status:** 🔴 Phase 2 IN PROGRESS — Students ✅ Teachers ✅ Classes ✅ Subjects ✅ Notices ✅ Attendance ✅ Teacher+Student Portals ✅ Git ✅
+**Last Session:** Teacher+Student portals fully built — Teacher dashboard (real stats, charts), Teacher attendance (restricted to own subjects/classes, 403 guard), Teacher notices; Student dashboard (personal stats, 7-day chart, 75% threshold), Student attendance (DataTable + 6-month chart), Student notices; Subjects updated with teacher assignment FK + admin UI dropdown; DataTables spinner fix; SampleDataSeeder updated to assign teachers by specialization; lang files completed (en+ur subjects 4 new keys); Git initialized + pushed to GitHub (197 files)
 **Next Task:** Phase 2 — Exams + Results module (create exam, enter marks per student, auto grade via AppHelpers::calcGrade)
 
 ### Current Phase:
@@ -1211,9 +1211,14 @@ public function store(Request $request) {
 - [x] Students CRUD (DataTables server-side, Ajax modal, photo upload) — StudentController + 7 routes + students/index.blade.php + address migration
 - [x] Teachers CRUD — TeacherController + 7 routes + teachers/index.blade.php (photo upload, phone, qualification, specialization, joining date)
 - [x] Classes CRUD — ClassController + 7 routes + classes/index.blade.php (student count shown, cannot-delete guard if students enrolled)
-- [x] Subjects CRUD — SubjectController + 7 routes + subjects/index.blade.php (filter by class, code badge)
+- [x] Subjects CRUD — SubjectController + 7 routes + subjects/index.blade.php (filter by class, code badge, teacher assignment)
 - [x] Notices CRUD — NoticeController + 7 routes + notices/index.blade.php (target role filter, content preview in table)
-- [x] Attendance (mark by class+date, Present/Absent/Late, bulk mark, history DataTable, AttendanceSeeder)
+- [x] Attendance (mark by class+date, Present/Absent/Late, bulk mark, history DataTable, AttendanceSeeder 2130 records)
+- [x] Teacher Portal — Dashboard (real stats + charts), Attendance (restricted to own subjects/classes, 403 guard), Notices
+- [x] Student Portal — Dashboard (personal stats + 7-day chart), Attendance (DataTable + 6-month chart, 75% threshold warning), Notices
+- [x] subjects.teacher_id migration — FK to teachers, Teacher model assignedClasses() helper
+- [x] SampleDataSeeder updated — teachers assigned to subjects by specialization
+- [x] Git initialized + pushed to GitHub (197 files, fe8c927)
 - [ ] Exams + Results
 - [ ] Report Cards (print)
 
@@ -1291,6 +1296,7 @@ public function store(Request $request) {
 [2026-05-26] | ✅ STUDENTS CRUD | Built: StudentController (7 methods: index/data/store/edit/update/destroy/toggleStatus), address migration added to students table, 7 student routes registered, resources/views/admin/students/index.blade.php (DataTables server-side + Ajax modal add/edit + photo upload + status toggle + delete confirm), lang/en/students.php + lang/ur/students.php updated (30+ keys), common.php click_to_toggle key added, Attendance model $table fix | Bugs: attendances table bug fixed (Attendance model needed protected $table = 'attendance') | Next: Phase 2 — Teachers CRUD
 [2026-05-28] | ✅ TEACHERS + CLASSES + SUBJECTS + NOTICES CRUD | Built: TeacherController+ClassController+SubjectController+NoticeController (28 routes total, 7 each), views: teachers/index+classes/index+subjects/index+notices/index (all DataTables server-side, Ajax modals, status toggle, SweetAlert2 delete), lang files: en+ur for all 4 modules (teachers/classes/subjects/notices — 8 files, 15+ keys each), Teachers avatar placeholder cyan gradient, Classes shows student count badge + cannot-delete guard, Subjects has class filter + code badge styling, Notices has target-role filter + content preview in table | Bugs: none | Next: Phase 2 — Attendance module (mark by class+date, bulk mark, calendar view, summary chart)
 [2026-05-28] | ✅ ATTENDANCE MODULE + SPINNER FIX | Built: AttendanceController (5 routes: index/data/mark/students/store), history page (DataTable with class+date+status filters, date-desc order), mark page (class+date selector → Ajax load students → P/A/L buttons per row → live counters → bulk save via updateOrCreate), AttendanceSeeder (2130 records, 30 past working days, 78%P/14%A/8%L), AttendanceSeeder.php standalone, Attendance model relations added (class+marker), lang/en/attendance.php + lang/ur/attendance.php (30+ keys), common.and key en+ur | Bugs: DataTables spinner stuck fixed (removed display:flex!important — was overriding DataTables display:none), spinner now centers via position:absolute+transform | Next: Phase 2 — Exams + Results module
+[2026-05-28] | ✅ TEACHER+STUDENT PORTALS + TEACHER-SUBJECT RESTRICTION + GIT | Built: Teacher\DashboardController (real stats: totalStudents/Classes/todayAttPct/noticesCount, trend line chart 7d, today breakdown doughnut), Teacher\AttendanceController (restricted to assignedClasses() only, 403 on unauthorized class_id), Teacher\NoticeController, Teacher views: dashboard+attendance+notices; Student\DashboardController (personal stats, 7-day bar chart P/L/A colors, 75% threshold warning), Student\AttendanceController (own DataTable + 6-month grouped bar chart), Student\NoticeController, Student views: dashboard+attendance+notices; subjects.teacher_id migration (FK nullable, nullOnDelete), Subject model teacher() relation, Teacher model subjects() + assignedClasses() helpers; Admin SubjectController+view updated with teacher assignment dropdown; SampleDataSeeder assigns teachers by spec (Mathematics→Imran/English→Sana/Science→Tariq/Urdu→Fatima/SocialStudies→Usman/Islamiyat→Ayesha); lang/en+ur subjects.php 4 new keys (assigned_teacher, assign_teacher, optional, no_teacher); common.php unauthorized+no_classes_assigned; dashboard.php total_classes+today_breakdown etc; Git initialized, 197 files, pushed to https://github.com/rizwan-bytes/educore-cms-laravel | Bugs: SampleDataSeeder roll_no collision on re-run (existing students) — non-critical, teacher assignment completed before error | Next: Phase 2 — Exams + Results module (exams CRUD, enter marks per student, auto grade calcGrade)
 ```
 
 ---
