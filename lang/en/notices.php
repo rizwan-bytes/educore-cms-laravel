@@ -1,0 +1,25 @@
+<?php
+
+return [
+    'title'           => 'Notices',
+    'add_new'         => 'Post Notice',
+    'edit'            => 'Edit Notice',
+    'total'           => 'Total Notices',
+    'notice_title'    => 'Notice Title',
+    'content'         => 'Notice Content',
+    'target_role'     => 'Target Audience',
+    'all_roles'       => 'All',
+    'role_all'        => 'Everyone',
+    'role_admin'      => 'Admin Only',
+    'role_teacher'    => 'Teachers',
+    'role_student'    => 'Students',
+    'posted_by'       => 'Posted By',
+    'posted_on'       => 'Posted On',
+    'search'          => 'Search notices...',
+    'no_notices'      => 'No notices found.',
+    'added_success'   => 'Notice posted successfully!',
+    'updated_success' => 'Notice updated successfully!',
+    'deleted_success' => 'Notice deleted successfully!',
+    'toggled_success' => 'Notice status updated!',
+    'not_found'       => 'Notice not found.',
+];

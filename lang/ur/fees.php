@@ -1,0 +1,23 @@
+<?php
+return [
+    'title'           => 'فیس',
+    'add_new'         => 'فیس شامل کریں',
+    'pending'         => 'زیر التواء',
+    'paid'            => 'ادا شدہ',
+    'overdue'         => 'میعاد گزری',
+    'amount'          => 'رقم',
+    'due_date'        => 'آخری تاریخ',
+    'paid_date'       => 'ادائیگی کی تاریخ',
+    'fee_type'        => 'فیس کی قسم',
+    'month'           => 'مہینہ',
+    'added_success'   => 'فیس ریکارڈ شامل ہو گیا!',
+    'updated_success' => 'فیس اپڈیٹ ہو گئی!',
+    'deleted_success' => 'فیس حذف ہو گئی!',
+    'structures'      => 'فیس ڈھانچہ',
+    'batch_generate'  => 'بیچ جنریٹ',
+    'scholarships'    => 'وظائف',
+    'analytics'       => 'فیس تجزیہ',
+    'reports'         => 'فیس رپورٹس',
+    'parent_portals'  => 'والدین پورٹلز',
+    'payment_proofs'  => 'ادائیگی ثبوت',
+];

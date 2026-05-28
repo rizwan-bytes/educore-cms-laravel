@@ -1,0 +1,23 @@
+<?php
+return [
+    'title'           => 'Fees',
+    'add_new'         => 'Add Fee',
+    'pending'         => 'Pending',
+    'paid'            => 'Paid',
+    'overdue'         => 'Overdue',
+    'amount'          => 'Amount',
+    'due_date'        => 'Due Date',
+    'paid_date'       => 'Paid Date',
+    'fee_type'        => 'Fee Type',
+    'month'           => 'Month',
+    'added_success'   => 'Fee record added!',
+    'updated_success' => 'Fee updated!',
+    'deleted_success' => 'Fee deleted!',
+    'structures'      => 'Fee Structures',
+    'batch_generate'  => 'Batch Generate',
+    'scholarships'    => 'Scholarships',
+    'analytics'       => 'Fee Analytics',
+    'reports'         => 'Fee Reports',
+    'parent_portals'  => 'Parent Portals',
+    'payment_proofs'  => 'Payment Proofs',
+];
