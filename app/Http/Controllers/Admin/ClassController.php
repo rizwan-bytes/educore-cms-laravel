@@ -4,8 +4,8 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\ClassRoom;
+use App\Models\Teacher;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 use Yajra\DataTables\Facades\DataTables;
 
 class ClassController extends Controller
@@ -13,13 +13,20 @@ class ClassController extends Controller
     // ── Index ────────────────────────────────────────────────────────────
     public function index()
     {
-        return view('admin.classes.index');
+        $teachers = Teacher::with('user')
+            ->where('status', true)
+            ->get()
+            ->map(fn($t) => ['id' => $t->id, 'name' => $t->user->name ?? '—']);
+
+        return view('admin.classes.index', compact('teachers'));
     }
 
     // ── DataTables (server-side) ─────────────────────────────────────────
     public function data(Request $request)
     {
-        $query = ClassRoom::withCount('students')->select('classes.*');
+        $query = ClassRoom::with('inchargeTeacher.user')
+            ->withCount('students')
+            ->select('classes.*');
 
         return DataTables::of($query)
             ->addIndexColumn()
@@ -29,11 +36,23 @@ class ClassController extends Controller
                     : '';
                 return '<div style="font-weight:500;color:var(--text)">' . e($c->name) . $section . '</div>';
             })
-            ->addColumn('section', fn($c) => e($c->section ?? '—'))
             ->addColumn('students_count', function ($c) {
                 return '<span class="badge" style="background:rgba(99,102,241,.15);color:var(--primary-lt);'
                     . 'border-radius:20px;padding:3px 10px;font-size:.78rem">'
                     . $c->students_count . '</span>';
+            })
+            ->addColumn('att_mode', function ($c) {
+                if ($c->attendance_mode === 'class_incharge') {
+                    $incharge = $c->inchargeTeacher?->user?->name ?? __('classes.no_incharge');
+                    return '<div>'
+                        . '<span style="background:rgba(6,182,212,.12);color:var(--cyan);padding:2px 8px;border-radius:20px;font-size:.72rem;font-weight:500">'
+                        . '<i class="fas fa-user-tie me-1"></i>' . __('classes.mode_class_incharge') . '</span>'
+                        . '<div style="font-size:.75rem;color:var(--muted);margin-top:2px">' . e($incharge) . '</div>'
+                        . '</div>';
+                } else {
+                    return '<span style="background:rgba(245,158,11,.12);color:#f59e0b;padding:2px 8px;border-radius:20px;font-size:.72rem;font-weight:500">'
+                        . '<i class="fas fa-book-open me-1"></i>' . __('classes.mode_subject_wise') . '</span>';
+                }
             })
             ->addColumn('status', function ($c) {
                 $cls = $c->status ? 'active' : 'inactive';
@@ -51,7 +70,7 @@ class ClassController extends Controller
                     . '<i class="fas fa-trash"></i></button>'
                     . '</div>';
             })
-            ->rawColumns(['class_name', 'students_count', 'status', 'actions'])
+            ->rawColumns(['class_name', 'students_count', 'att_mode', 'status', 'actions'])
             ->make(true);
     }
 
@@ -59,15 +78,20 @@ class ClassController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name'    => 'required|string|max:100',
-            'section' => 'nullable|string|max:50',
-            'status'  => 'nullable|boolean',
+            'name'                => 'required|string|max:100',
+            'section'             => 'nullable|string|max:50',
+            'attendance_mode'     => 'required|in:class_incharge,subject_wise',
+            'incharge_teacher_id' => 'nullable|exists:teachers,id',
         ]);
 
         $class = ClassRoom::create([
-            'name'    => $request->name,
-            'section' => $request->section ?: null,
-            'status'  => true,
+            'name'                => $request->name,
+            'section'             => $request->section ?: null,
+            'attendance_mode'     => $request->attendance_mode,
+            'incharge_teacher_id' => $request->attendance_mode === 'class_incharge'
+                                        ? ($request->incharge_teacher_id ?: null)
+                                        : null,
+            'status'              => true,
         ]);
 
         return response()->json([
@@ -84,10 +108,12 @@ class ClassController extends Controller
 
         return response()->json([
             'class' => [
-                'id'      => $class->id,
-                'name'    => $class->name,
-                'section' => $class->section,
-                'status'  => $class->status,
+                'id'                  => $class->id,
+                'name'                => $class->name,
+                'section'             => $class->section,
+                'status'              => $class->status,
+                'attendance_mode'     => $class->attendance_mode,
+                'incharge_teacher_id' => $class->incharge_teacher_id,
             ],
         ]);
     }
@@ -98,13 +124,19 @@ class ClassController extends Controller
         $class = ClassRoom::findOrFail($id);
 
         $request->validate([
-            'name'    => 'required|string|max:100',
-            'section' => 'nullable|string|max:50',
+            'name'                => 'required|string|max:100',
+            'section'             => 'nullable|string|max:50',
+            'attendance_mode'     => 'required|in:class_incharge,subject_wise',
+            'incharge_teacher_id' => 'nullable|exists:teachers,id',
         ]);
 
         $class->update([
-            'name'    => $request->name,
-            'section' => $request->section ?: null,
+            'name'                => $request->name,
+            'section'             => $request->section ?: null,
+            'attendance_mode'     => $request->attendance_mode,
+            'incharge_teacher_id' => $request->attendance_mode === 'class_incharge'
+                                        ? ($request->incharge_teacher_id ?: null)
+                                        : null,
         ]);
 
         return response()->json([

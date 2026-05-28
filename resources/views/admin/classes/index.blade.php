@@ -22,8 +22,8 @@
             <tr>
                 <th style="width:50px">#</th>
                 <th>{{ __('classes.class_name') }}</th>
-                <th>{{ __('classes.section') }}</th>
                 <th>{{ __('classes.students_count') }}</th>
+                <th>{{ __('classes.attendance_mode') }}</th>
                 <th>{{ __('common.status') }}</th>
                 <th style="width:90px">{{ __('common.actions') }}</th>
             </tr>
@@ -51,7 +51,7 @@
                 <div class="modal-body">
                     <div class="row g-3">
                         {{-- Class Name --}}
-                        <div class="col-12">
+                        <div class="col-md-7">
                             <label class="form-label" style="color:var(--text-2)">
                                 {{ __('classes.class_name') }} <span class="text-danger">*</span>
                             </label>
@@ -60,7 +60,7 @@
                                    style="background:var(--surface);border-color:var(--border);color:var(--text)">
                         </div>
                         {{-- Section --}}
-                        <div class="col-12">
+                        <div class="col-md-5">
                             <label class="form-label" style="color:var(--text-2)">
                                 {{ __('classes.section') }}
                                 <span style="color:var(--muted);font-size:.78rem">({{ __('classes.section_hint') }})</span>
@@ -68,6 +68,49 @@
                             <input type="text" name="section" id="f_section" class="form-control" maxlength="50"
                                    placeholder="{{ __('classes.section_hint') }}"
                                    style="background:var(--surface);border-color:var(--border);color:var(--text)">
+                        </div>
+
+                        {{-- Attendance Mode --}}
+                        <div class="col-12">
+                            <label class="form-label" style="color:var(--text-2)">
+                                {{ __('classes.attendance_mode') }} <span class="text-danger">*</span>
+                            </label>
+                            <div class="mode-toggle-wrap">
+                                <label class="mode-option" id="modeOptIncharge">
+                                    <input type="radio" name="attendance_mode" value="class_incharge" id="modeIncharge" checked>
+                                    <div class="mode-card">
+                                        <i class="fas fa-user-tie"></i>
+                                        <div>
+                                            <strong>{{ __('classes.mode_class_incharge') }}</strong>
+                                            <small>{{ __('classes.mode_hint_incharge') }}</small>
+                                        </div>
+                                    </div>
+                                </label>
+                                <label class="mode-option" id="modeOptSubject">
+                                    <input type="radio" name="attendance_mode" value="subject_wise" id="modeSubject">
+                                    <div class="mode-card">
+                                        <i class="fas fa-book-open"></i>
+                                        <div>
+                                            <strong>{{ __('classes.mode_subject_wise') }}</strong>
+                                            <small>{{ __('classes.mode_hint_subject') }}</small>
+                                        </div>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        {{-- Incharge Teacher (shown only when mode = class_incharge) --}}
+                        <div class="col-12" id="inchargeWrap">
+                            <label class="form-label" style="color:var(--text-2)">
+                                {{ __('classes.incharge_teacher') }}
+                            </label>
+                            <select name="incharge_teacher_id" id="f_incharge_teacher_id" class="form-select"
+                                    style="background:var(--surface);border-color:var(--border);color:var(--text)">
+                                <option value="">{{ __('classes.select_incharge') }}</option>
+                                @foreach($teachers as $t)
+                                    <option value="{{ $t['id'] }}">{{ $t['name'] }}</option>
+                                @endforeach
+                            </select>
                         </div>
                     </div>
                 </div>
@@ -90,27 +133,20 @@
 
 @push('scripts')
 <script>
-// ──────────────────────────────────────────────────────────────────────────
-// CLASSES — DataTable + Ajax CRUD
-// ──────────────────────────────────────────────────────────────────────────
-
 var classesTable;
 
 $(document).ready(function () {
     classesTable = $('#classesTable').DataTable({
         processing: true,
         serverSide: true,
-        ajax: {
-            url: '{{ route("admin.classes.data") }}',
-            type: 'GET',
-        },
+        ajax: { url: '{{ route("admin.classes.data") }}', type: 'GET' },
         columns: [
             { data: 'DT_RowIndex',    name: 'DT_RowIndex',     orderable: false, searchable: false },
             { data: 'class_name',     name: 'name' },
-            { data: 'section',        name: 'section' },
-            { data: 'students_count', name: 'students_count', orderable: false, searchable: false },
-            { data: 'status',         name: 'status', orderable: false, searchable: false },
-            { data: 'actions',        name: 'actions', orderable: false, searchable: false },
+            { data: 'students_count', name: 'students_count',  orderable: false, searchable: false },
+            { data: 'att_mode',       name: 'attendance_mode', orderable: false, searchable: false },
+            { data: 'status',         name: 'status',          orderable: false, searchable: false },
+            { data: 'actions',        name: 'actions',         orderable: false, searchable: false },
         ],
         dom: "<'dt-toolbar'<'dt-left'f><'dt-right'Bl>><'dt-table't><'dt-footer'ip>",
         buttons: [
@@ -174,14 +210,31 @@ $(document).ready(function () {
     });
 });
 
+// ── Mode Toggle ───────────────────────────────────────────────────────────
+function updateModeUI() {
+    var mode = document.querySelector('input[name="attendance_mode"]:checked')?.value;
+    var wrap = document.getElementById('inchargeWrap');
+    wrap.style.display = (mode === 'class_incharge') ? '' : 'none';
+
+    // Highlight selected card
+    document.getElementById('modeOptIncharge').classList.toggle('mode-active', mode === 'class_incharge');
+    document.getElementById('modeOptSubject').classList.toggle('mode-active', mode === 'subject_wise');
+}
+
+document.querySelectorAll('input[name="attendance_mode"]').forEach(function(r) {
+    r.addEventListener('change', updateModeUI);
+});
+
 // ── Modal: Open Add ──────────────────────────────────────────────────────
 function openAddModal() {
     document.getElementById('modalTitleText').textContent = '{{ __("classes.add_new") }}';
     document.getElementById('formMethod').value = 'POST';
     document.getElementById('classId').value = '';
     document.getElementById('classForm').reset();
+    document.getElementById('modeIncharge').checked = true;
     document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
     document.querySelectorAll('.invalid-feedback').forEach(el => el.remove());
+    updateModeUI();
 }
 
 // ── Modal: Open Edit ─────────────────────────────────────────────────────
@@ -193,8 +246,14 @@ function editClass(id) {
     axios.get(`/admin/classes/${id}/edit`)
         .then(function (res) {
             var c = res.data.class;
-            document.getElementById('f_name').value    = c.name || '';
+            document.getElementById('f_name').value = c.name || '';
             document.getElementById('f_section').value = c.section || '';
+            document.getElementById('f_incharge_teacher_id').value = c.incharge_teacher_id || '';
+
+            var mode = c.attendance_mode || 'class_incharge';
+            document.querySelector('input[name="attendance_mode"][value="' + mode + '"]').checked = true;
+            updateModeUI();
+
             new bootstrap.Modal(document.getElementById('classModal')).show();
         })
         .catch(function () { toastError('{{ __("classes.not_found") }}'); });
@@ -218,19 +277,17 @@ document.getElementById('classForm').addEventListener('submit', function (e) {
 // ── Toggle Status ────────────────────────────────────────────────────────
 function toggleStatus(id) {
     axios.patch(`/admin/classes/${id}/toggle`)
-        .then(function (res) {
-            toastSuccess(res.data.message);
-            classesTable.ajax.reload(null, false);
-        })
+        .then(function (res) { toastSuccess(res.data.message); classesTable.ajax.reload(null, false); })
         .catch(function () { toastError('{{ __("common.error") }}'); });
 }
 
 // ── Delete ───────────────────────────────────────────────────────────────
 function deleteClass(id) {
-    confirmDelete(`/admin/classes/${id}`, function () {
-        classesTable.ajax.reload(null, false);
-    });
+    confirmDelete(`/admin/classes/${id}`, function () { classesTable.ajax.reload(null, false); });
 }
+
+// Init
+updateModeUI();
 </script>
 @endpush
 
@@ -246,5 +303,27 @@ function deleteClass(id) {
 .badge-status.active   { background:rgba(16,185,129,.15); color:#10b981; }
 .badge-status.inactive { background:rgba(239,68,68,.12);  color:#ef4444; }
 .badge-status:hover { opacity:.8; }
+
+/* Mode toggle cards */
+.mode-toggle-wrap { display:flex; gap:10px; }
+.mode-option { flex:1; cursor:pointer; }
+.mode-option input[type="radio"] { display:none; }
+.mode-card {
+    display:flex; align-items:center; gap:12px;
+    background:var(--surface); border:1px solid var(--border);
+    border-radius:10px; padding:12px 14px;
+    transition:all .15s; color:var(--text-2);
+}
+.mode-card i { font-size:1.2rem; flex-shrink:0; }
+.mode-card strong { display:block; font-size:.85rem; color:var(--text); }
+.mode-card small { font-size:.72rem; color:var(--muted); }
+.mode-option.mode-active .mode-card {
+    border-color:var(--primary);
+    background:rgba(99,102,241,.08);
+    color:var(--primary-lt);
+}
+.mode-option.mode-active .mode-card i { color:var(--primary-lt); }
+.mode-option.mode-active .mode-card strong { color:var(--primary-lt); }
+@media(max-width:480px) { .mode-toggle-wrap { flex-direction:column; } }
 </style>
 @endpush

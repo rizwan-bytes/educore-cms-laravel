@@ -42,4 +42,15 @@ return [
     'back_to_history'    => 'Back to History',
     'today'              => 'Today',
     'records'            => 'Records',
+
+    // Attendance mode
+    'mode_class_incharge'  => 'Class Incharge',
+    'mode_subject_wise'    => 'Subject-wise',
+    'select_subject'       => '— Select Subject —',
+    'subject'              => 'Subject',
+    'all_subjects'         => 'All Subjects',
+    'class_incharge_label' => 'Marking as Class Incharge',
+    'subject_wise_label'   => 'Select subject to mark attendance',
+    'no_subjects_assigned' => 'No subjects assigned to you in this class.',
+    'not_incharge'         => 'You are not the incharge for this class.',
 ];

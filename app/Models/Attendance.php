@@ -4,7 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use App\Models\ClassRoom;
 
 class Attendance extends Model
 {
@@ -25,6 +24,7 @@ class Attendance extends Model
         'date' => 'date',
     ];
 
+    // ── Relations ─────────────────────────────────────────────────────────
     public function student()
     {
         return $this->belongsTo(Student::class);
@@ -35,8 +35,13 @@ class Attendance extends Model
         return $this->belongsTo(ClassRoom::class, 'class_id');
     }
 
+    public function subject()
+    {
+        return $this->belongsTo(Subject::class, 'subject_id');
+    }
+
     public function marker()
     {
-        return $this->belongsTo(\App\Models\User::class, 'marked_by');
+        return $this->belongsTo(User::class, 'marked_by');
     }
 }

@@ -24,20 +24,29 @@
     {{-- Class + Date Selector --}}
     <div style="padding:20px 24px;border-bottom:1px solid var(--border)">
         <div class="row g-3 align-items-end">
+            {{-- Class --}}
             <div class="col-md-4">
                 <label class="form-label" style="color:var(--text-2);font-size:.85rem">
                     {{ __('attendance.filter_class') }} <span class="text-danger">*</span>
                 </label>
                 <select id="classSelect" class="form-select"
-                        style="background:var(--surface);border-color:var(--border);color:var(--text)">
+                        style="background:var(--surface);border-color:var(--border);color:var(--text)"
+                        onchange="onClassChange()">
                     <option value="">— {{ __('attendance.select_class') }} —</option>
                     @foreach($classes as $class)
-                        <option value="{{ $class->id }}">
+                        <option value="{{ $class->id }}"
+                                data-mode="{{ $class->attendance_mode }}">
                             {{ $class->name }}{{ $class->section ? ' — '.$class->section : '' }}
+                            @if($class->attendance_mode === 'class_incharge')
+                                ({{ __('classes.mode_class_incharge') }})
+                            @else
+                                ({{ __('classes.mode_subject_wise') }})
+                            @endif
                         </option>
                     @endforeach
                 </select>
             </div>
+            {{-- Date --}}
             <div class="col-md-3">
                 <label class="form-label" style="color:var(--text-2);font-size:.85rem">
                     {{ __('attendance.filter_date') }} <span class="text-danger">*</span>
@@ -46,12 +55,26 @@
                        value="{{ date('Y-m-d') }}" max="{{ date('Y-m-d') }}"
                        style="background:var(--surface);border-color:var(--border);color:var(--text)">
             </div>
-            <div class="col-md-3">
+            {{-- Subject (subject_wise only) --}}
+            <div class="col-md-3" id="subjectWrap" style="display:none">
+                <label class="form-label" style="color:var(--text-2);font-size:.85rem">
+                    {{ __('attendance.subject') }} <span class="text-danger">*</span>
+                </label>
+                <select id="subjectSelect" class="form-select"
+                        style="background:var(--surface);border-color:var(--border);color:var(--text)">
+                    <option value="">{{ __('attendance.select_subject') }}</option>
+                </select>
+            </div>
+            {{-- Load --}}
+            <div class="col-md-2">
                 <button id="loadBtn" class="btn-primary-custom w-100" onclick="loadStudents()" style="height:42px">
                     <i class="fas fa-users me-1"></i> {{ __('attendance.load_students') }}
                 </button>
             </div>
         </div>
+
+        {{-- Mode banner --}}
+        <div id="modeBanner" style="display:none;margin-top:14px"></div>
     </div>
 
     {{-- Status Bar --}}
@@ -108,32 +131,86 @@
 @push('scripts')
 <script>
 var studentsData = [];
+var currentMode  = 'class_incharge';
+
+function onClassChange() {
+    var sel  = document.getElementById('classSelect');
+    var opt  = sel.options[sel.selectedIndex];
+    var mode = opt ? (opt.dataset.mode || '') : '';
+
+    currentMode = mode;
+    hideGrid();
+
+    var subWrap = document.getElementById('subjectWrap');
+    var banner  = document.getElementById('modeBanner');
+
+    if (!mode) { subWrap.style.display = 'none'; banner.style.display = 'none'; return; }
+
+    if (mode === 'subject_wise') {
+        subWrap.style.display = '';
+        banner.innerHTML = '<div class="mode-info-banner subject-wise"><i class="fas fa-book-open"></i><span>{{ __("attendance.subject_wise_label") }}</span></div>';
+        loadSubjectsForClass(sel.value);
+    } else {
+        subWrap.style.display = 'none';
+        banner.innerHTML = '<div class="mode-info-banner incharge"><i class="fas fa-user-tie"></i><span>{{ __("attendance.class_incharge_label") }}</span></div>';
+    }
+    banner.style.display = '';
+}
+
+function loadSubjectsForClass(classId) {
+    var subSel = document.getElementById('subjectSelect');
+    subSel.innerHTML = '<option value="">{{ __("attendance.select_subject") }}</option>';
+
+    axios.get('{{ route("teacher.attendance.students") }}', {
+        params: { class_id: classId, date: document.getElementById('dateSelect').value }
+    }).then(function(res) {
+        if (res.data.subjects) {
+            res.data.subjects.forEach(function(s) {
+                var opt = document.createElement('option');
+                opt.value = s.id; opt.textContent = s.name;
+                subSel.appendChild(opt);
+            });
+        }
+    }).catch(function() {});
+}
 
 function loadStudents() {
-    var classId = document.getElementById('classSelect').value;
-    var date    = document.getElementById('dateSelect').value;
+    var classId   = document.getElementById('classSelect').value;
+    var date      = document.getElementById('dateSelect').value;
+    var subjectId = currentMode === 'subject_wise'
+        ? document.getElementById('subjectSelect').value : null;
+
     if (!classId || !date) { toastWarning('{{ __("attendance.select_class") }}'); return; }
+    if (currentMode === 'subject_wise' && !subjectId) {
+        toastWarning('{{ __("attendance.select_subject") }}'); return;
+    }
 
     var btn = document.getElementById('loadBtn');
     btn.disabled = true;
     btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Loading...';
 
-    axios.get('{{ route("teacher.attendance.students") }}', { params: { class_id: classId, date: date } })
-        .then(function (res) {
+    var params = { class_id: classId, date: date };
+    if (subjectId) params.subject_id = subjectId;
+
+    axios.get('{{ route("teacher.attendance.students") }}', { params: params })
+        .then(function(res) {
             studentsData = res.data.students;
             renderStudents(studentsData, res.data.already_marked);
         })
-        .catch(function () { toastError('{{ __("common.error") }}'); })
-        .finally(function () {
+        .catch(function(err) {
+            var msg = err.response?.data?.message || '{{ __("common.error") }}';
+            toastError(msg);
+        })
+        .finally(function() {
             btn.disabled = false;
             btn.innerHTML = '<i class="fas fa-users me-1"></i> {{ __("attendance.load_students") }}';
         });
 }
 
 function renderStudents(students, alreadyMarked) {
-    document.getElementById('statusBar').style.display = '';
+    document.getElementById('statusBar').style.display   = '';
     document.getElementById('studentGrid').style.display = '';
-    document.getElementById('submitBar').style.display = students.length ? '' : 'none';
+    document.getElementById('submitBar').style.display   = students.length ? '' : 'none';
     document.getElementById('alreadyMarkedBadge').style.display = alreadyMarked ? '' : 'none';
     document.getElementById('studentCountBadge').innerHTML =
         '<strong style="color:var(--text)">' + students.length + '</strong> {{ __("attendance.student_name") }}';
@@ -145,7 +222,7 @@ function renderStudents(students, alreadyMarked) {
     noMsg.style.display = 'none'; container.style.display = '';
 
     var html = '<div class="att-grid">';
-    students.forEach(function (s) {
+    students.forEach(function(s) {
         var initial  = s.name.charAt(0).toUpperCase();
         var avatarBg = s.gender === 'Female'
             ? 'linear-gradient(135deg,#ec4899,#db2777)'
@@ -162,6 +239,13 @@ function renderStudents(students, alreadyMarked) {
     html += '</div>';
     container.innerHTML = html;
     updateCounters();
+}
+
+function hideGrid() {
+    studentsData = [];
+    document.getElementById('statusBar').style.display   = 'none';
+    document.getElementById('studentGrid').style.display = 'none';
+    document.getElementById('submitBar').style.display   = 'none';
 }
 
 function setStatus(studentId, status) {
@@ -203,19 +287,25 @@ function saveAttendance() {
     btn.disabled = true;
     btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Saving...';
 
-    axios.post('{{ route("teacher.attendance.store") }}', {
+    var payload = {
         class_id:   document.getElementById('classSelect').value,
         date:       document.getElementById('dateSelect').value,
         attendance: studentsData.map(function(s){ return { student_id: s.id, status: s.status }; })
-    }).then(function(res){
-        toastSuccess(res.data.message);
-        document.getElementById('alreadyMarkedBadge').style.display = '';
-    }).catch(function(err){
-        toastError(err.response?.data?.message || '{{ __("common.error") }}');
-    }).finally(function(){
-        btn.disabled = false;
-        btn.innerHTML = '<i class="fas fa-floppy-disk me-1"></i> {{ __("attendance.submit") }}';
-    });
+    };
+    if (currentMode === 'subject_wise') {
+        payload.subject_id = document.getElementById('subjectSelect').value;
+    }
+
+    axios.post('{{ route("teacher.attendance.store") }}', payload)
+        .then(function(res){
+            toastSuccess(res.data.message);
+            document.getElementById('alreadyMarkedBadge').style.display = '';
+        })
+        .catch(function(err){ toastError(err.response?.data?.message || '{{ __("common.error") }}'); })
+        .finally(function(){
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-floppy-disk me-1"></i> {{ __("attendance.submit") }}';
+        });
 }
 
 function escHtml(str) {
@@ -248,6 +338,9 @@ function escHtml(str) {
 .att-counter.present { background:rgba(16,185,129,.12); color:#10b981; }
 .att-counter.absent  { background:rgba(239,68,68,.12);  color:#ef4444; }
 .att-counter.late    { background:rgba(245,158,11,.12); color:#f59e0b; }
-@media (max-width:576px) { .att-row { flex-wrap:wrap; } .att-btns { width:100%; justify-content:flex-end; } }
+.mode-info-banner { display:flex; align-items:center; gap:10px; padding:9px 14px; border-radius:8px; font-size:.82rem; }
+.mode-info-banner.incharge { background:rgba(6,182,212,.08); border:1px solid rgba(6,182,212,.2); color:var(--cyan); }
+.mode-info-banner.subject-wise { background:rgba(245,158,11,.08); border:1px solid rgba(245,158,11,.2); color:#f59e0b; }
+@media(max-width:576px) { .att-row { flex-wrap:wrap; } .att-btns { width:100%; justify-content:flex-end; } }
 </style>
 @endpush

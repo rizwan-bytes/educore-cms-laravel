@@ -42,4 +42,15 @@ return [
     'back_to_history'    => 'تاریخ پر واپس',
     'today'              => 'آج',
     'records'            => 'ریکارڈز',
+
+    // Attendance mode
+    'mode_class_incharge'  => 'کلاس انچارج',
+    'mode_subject_wise'    => 'مضمون وار',
+    'select_subject'       => '— مضمون منتخب کریں —',
+    'subject'              => 'مضمون',
+    'all_subjects'         => 'تمام مضامین',
+    'class_incharge_label' => 'کلاس انچارج کی حیثیت سے درج کر رہے ہیں',
+    'subject_wise_label'   => 'حاضری کے لیے مضمون منتخب کریں',
+    'no_subjects_assigned' => 'اس جماعت میں آپ کو کوئی مضمون تفویض نہیں۔',
+    'not_incharge'         => 'آپ اس جماعت کے انچارج نہیں ہیں۔',
 ];

@@ -3,7 +3,6 @@
 
 @section('content')
 
-{{-- Page Header --}}
 <div class="glass-card">
     <div class="card-header">
         <span>
@@ -15,7 +14,7 @@
         <div class="d-flex gap-2 align-items-center flex-wrap">
             {{-- Class Filter --}}
             <select id="classFilter" class="form-select form-select-sm"
-                    style="width:170px;background:var(--surface);border-color:var(--border);color:var(--text)">
+                    style="width:160px;background:var(--surface);border-color:var(--border);color:var(--text)">
                 <option value="">{{ __('attendance.all_classes') }}</option>
                 @foreach($classes as $class)
                     <option value="{{ $class->id }}">
@@ -23,9 +22,17 @@
                     </option>
                 @endforeach
             </select>
+            {{-- Subject Filter --}}
+            <select id="subjectFilter" class="form-select form-select-sm"
+                    style="width:150px;background:var(--surface);border-color:var(--border);color:var(--text)">
+                <option value="">{{ __('attendance.all_subjects') }}</option>
+                @foreach($subjects as $sub)
+                    <option value="{{ $sub->id }}">{{ $sub->name }}</option>
+                @endforeach
+            </select>
             {{-- Status Filter --}}
             <select id="statusFilter" class="form-select form-select-sm"
-                    style="width:130px;background:var(--surface);border-color:var(--border);color:var(--text)">
+                    style="width:120px;background:var(--surface);border-color:var(--border);color:var(--text)">
                 <option value="">{{ __('attendance.all_statuses') }}</option>
                 <option value="Present">{{ __('attendance.present') }}</option>
                 <option value="Absent">{{ __('attendance.absent') }}</option>
@@ -33,7 +40,7 @@
             </select>
             {{-- Date Filter --}}
             <input type="date" id="dateFilter" class="form-control form-control-sm"
-                   style="width:155px;background:var(--surface);border-color:var(--border);color:var(--text)">
+                   style="width:150px;background:var(--surface);border-color:var(--border);color:var(--text)">
             {{-- Mark Button --}}
             <a href="{{ route('admin.attendance.mark') }}" class="btn-primary-custom">
                 <i class="fas fa-pen-to-square"></i> {{ __('attendance.mark') }}
@@ -47,6 +54,7 @@
                 <th style="width:50px">#</th>
                 <th>{{ __('attendance.student_name') }}</th>
                 <th>{{ __('attendance.class') }}</th>
+                <th>{{ __('attendance.subject') }}</th>
                 <th>{{ __('attendance.date') }}</th>
                 <th>{{ __('attendance.status') }}</th>
             </tr>
@@ -58,10 +66,6 @@
 
 @push('scripts')
 <script>
-// ──────────────────────────────────────────────────────────────────────────
-// ATTENDANCE HISTORY — DataTable
-// ──────────────────────────────────────────────────────────────────────────
-
 var attendanceTable;
 
 $(document).ready(function () {
@@ -72,15 +76,17 @@ $(document).ready(function () {
             url: '{{ route("admin.attendance.data") }}',
             type: 'GET',
             data: function (d) {
-                d.class_id = $('#classFilter').val();
-                d.status   = $('#statusFilter').val();
-                d.date     = $('#dateFilter').val();
+                d.class_id   = $('#classFilter').val();
+                d.subject_id = $('#subjectFilter').val();
+                d.status     = $('#statusFilter').val();
+                d.date       = $('#dateFilter').val();
             }
         },
         columns: [
-            { data: 'DT_RowIndex',   name: 'DT_RowIndex', orderable: false, searchable: false },
+            { data: 'DT_RowIndex',   name: 'DT_RowIndex',  orderable: false, searchable: false },
             { data: 'student_name',  name: 'student_name', orderable: false, searchable: false },
             { data: 'class_name',    name: 'class_name',   orderable: false, searchable: false },
+            { data: 'subject_name',  name: 'subject_name', orderable: false, searchable: false },
             { data: 'date_fmt',      name: 'date' },
             { data: 'status_badge',  name: 'status',       orderable: false, searchable: false },
         ],
@@ -123,7 +129,7 @@ $(document).ready(function () {
         ],
         pageLength: 20,
         lengthMenu: [[10, 20, 50, 100, -1], [10, 20, 50, 100, 'All']],
-        order: [[3, 'desc']],
+        order: [[4, 'desc']],
         language: {
             search:           '',
             searchPlaceholder:'{{ __("attendance.search") }}',
@@ -146,8 +152,7 @@ $(document).ready(function () {
         }
     });
 
-    // Reload on filter change
-    $('#classFilter, #statusFilter').on('change', function () {
+    $('#classFilter, #subjectFilter, #statusFilter').on('change', function () {
         attendanceTable.ajax.reload();
     });
     $('#dateFilter').on('change', function () {
