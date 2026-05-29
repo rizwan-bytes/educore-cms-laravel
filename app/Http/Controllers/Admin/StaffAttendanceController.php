@@ -57,12 +57,12 @@ class StaffAttendanceController extends Controller
                 $s = $a->staff;
                 if (!$s) return '—';
                 $colors = [
-                    'administrative'   => 'var(--primary)',
+                    'administrative'   => 'var(--primary-lt)',
                     'finance'          => 'var(--green)',
                     'academic_support' => 'var(--cyan)',
-                    'support'          => 'var(--muted)',
+                    'support'          => 'var(--orange)',
                 ];
-                $color = $colors[$s->department] ?? 'var(--muted)';
+                $color = $colors[$s->department] ?? 'var(--text-2)';
                 return '<span style="background:' . $color . '20;color:' . $color . ';border:1px solid ' . $color . '40;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;">'
                      . e($s->department_label) . '</span>';
             })

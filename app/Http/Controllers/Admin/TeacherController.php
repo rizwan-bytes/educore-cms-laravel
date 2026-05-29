@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Subject;
 use App\Models\Teacher;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -17,13 +18,21 @@ class TeacherController extends Controller
     // ── Index ────────────────────────────────────────────────────────────
     public function index()
     {
-        return view('admin.teachers.index');
+        // Distinct subject names from subjects table for specialization dropdown
+        $subjects = Subject::select('name')
+            ->distinct()
+            ->orderBy('name')
+            ->pluck('name');
+
+        return view('admin.teachers.index', compact('subjects'));
     }
 
     // ── DataTables (server-side) ─────────────────────────────────────────
     public function data(Request $request)
     {
-        $query = Teacher::with('user')->select('teachers.*');
+        $query = Teacher::with('user')
+            ->leftJoin('users', 'users.id', '=', 'teachers.user_id')
+            ->select('teachers.*');
 
         return DataTables::of($query)
             ->addIndexColumn()

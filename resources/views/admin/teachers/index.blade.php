@@ -111,9 +111,13 @@
                         {{-- Subject Specialization --}}
                         <div class="col-md-6">
                             <label class="form-label" style="color:var(--text-2)">{{ __('teachers.subject_specialization') }}</label>
-                            <input type="text" name="subject_specialization" id="f_specialization" class="form-control"
-                                   maxlength="100" placeholder="e.g. Mathematics, English"
-                                   style="background:var(--surface);border-color:var(--border);color:var(--text)">
+                            <select name="subject_specialization" id="f_specialization" class="form-select"
+                                    style="background:var(--surface);border-color:var(--border);color:var(--text)">
+                                <option value="">— {{ __('common.select') }} —</option>
+                                @foreach($subjects as $subjectName)
+                                    <option value="{{ $subjectName }}">{{ $subjectName }}</option>
+                                @endforeach
+                            </select>
                         </div>
                         {{-- Joining Date --}}
                         <div class="col-md-6">
@@ -159,10 +163,10 @@ $(document).ready(function () {
         columns: [
             { data: 'DT_RowIndex',    name: 'DT_RowIndex',    orderable: false, searchable: false },
             { data: 'name',           name: 'users.name' },
-            { data: 'qualification',  name: 'qualification' },
-            { data: 'specialization', name: 'subject_specialization' },
-            { data: 'joining_date',   name: 'joining_date' },
-            { data: 'status',         name: 'status',  orderable: false, searchable: false },
+            { data: 'qualification',  name: 'teachers.qualification' },
+            { data: 'specialization', name: 'teachers.subject_specialization' },
+            { data: 'joining_date',   name: 'teachers.joining_date' },
+            { data: 'status',         name: 'teachers.status',  orderable: false, searchable: false },
             { data: 'actions',        name: 'actions', orderable: false, searchable: false },
         ],
         dom: "<'dt-toolbar'<'dt-left'f><'dt-right'Bl>><'dt-table't><'dt-footer'ip>",

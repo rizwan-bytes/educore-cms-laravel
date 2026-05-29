@@ -91,25 +91,25 @@
 
                         {{-- Name --}}
                         <div class="col-md-6">
-                            <label class="form-label text-muted">{{ __('staff.name') }} *</label>
+                            <label class="form-label" style="color:var(--text-2)">{{ __('staff.name') }} *</label>
                             <input type="text" name="name" id="staffName" class="form-control" style="background:var(--surface);border-color:var(--border);color:var(--text)"
                                    placeholder="{{ __('staff.name') }}" required>
                         </div>
                         {{-- Phone --}}
                         <div class="col-md-6">
-                            <label class="form-label text-muted">{{ __('staff.phone') }}</label>
+                            <label class="form-label" style="color:var(--text-2)">{{ __('staff.phone') }}</label>
                             <input type="text" name="phone" id="staffPhone" class="form-control" style="background:var(--surface);border-color:var(--border);color:var(--text)"
                                    placeholder="03xx-xxxxxxx">
                         </div>
                         {{-- CNIC --}}
                         <div class="col-md-6">
-                            <label class="form-label text-muted">{{ __('staff.cnic') }}</label>
+                            <label class="form-label" style="color:var(--text-2)">{{ __('staff.cnic') }}</label>
                             <input type="text" name="cnic" id="staffCnic" class="form-control" style="background:var(--surface);border-color:var(--border);color:var(--text)"
                                    placeholder="xxxxx-xxxxxxx-x">
                         </div>
                         {{-- Department --}}
                         <div class="col-md-6">
-                            <label class="form-label text-muted">{{ __('staff.department') }} *</label>
+                            <label class="form-label" style="color:var(--text-2)">{{ __('staff.department') }} *</label>
                             <select name="department" id="staffDept" class="form-select" style="background:var(--surface);border-color:var(--border);color:var(--text)" required>
                                 <option value="">— {{ __('staff.select_department') }} —</option>
                                 @foreach($departments as $key => $label)
@@ -119,18 +119,18 @@
                         </div>
                         {{-- Designation --}}
                         <div class="col-md-6">
-                            <label class="form-label text-muted">{{ __('staff.designation') }}</label>
+                            <label class="form-label" style="color:var(--text-2)">{{ __('staff.designation') }}</label>
                             <input type="text" name="designation" id="staffDesig" class="form-control" style="background:var(--surface);border-color:var(--border);color:var(--text)"
                                    placeholder="{{ __('staff.designation') }}">
                         </div>
                         {{-- Joining Date --}}
                         <div class="col-md-6">
-                            <label class="form-label text-muted">{{ __('staff.joining_date') }}</label>
+                            <label class="form-label" style="color:var(--text-2)">{{ __('staff.joining_date') }}</label>
                             <input type="date" name="joining_date" id="staffJoining" class="form-control" style="background:var(--surface);border-color:var(--border);color:var(--text)">
                         </div>
                         {{-- Salary --}}
                         <div class="col-md-6">
-                            <label class="form-label text-muted">{{ __('staff.salary') }}</label>
+                            <label class="form-label" style="color:var(--text-2)">{{ __('staff.salary') }}</label>
                             <input type="number" name="salary" id="staffSalary" class="form-control" style="background:var(--surface);border-color:var(--border);color:var(--text)"
                                    placeholder="0.00" min="0" step="0.01">
                         </div>
@@ -138,7 +138,7 @@
                         <div class="col-md-6 d-flex align-items-end">
                             <div class="form-check form-switch ms-2">
                                 <input class="form-check-input" type="checkbox" name="status" id="staffStatus" checked>
-                                <label class="form-check-label text-muted ms-2" for="staffStatus">
+                                <label class="form-check-label ms-2" style="color:var(--text-2)" for="staffStatus">
                                     {{ __('common.active') }}
                                 </label>
                             </div>

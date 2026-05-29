@@ -26,11 +26,13 @@ class StudentController extends Controller
     public function data(Request $request)
     {
         $query = Student::with(['user', 'class'])
+            ->leftJoin('users',   'users.id',   '=', 'students.user_id')
+            ->leftJoin('classes', 'classes.id', '=', 'students.class_id')
             ->select('students.*');
 
         // Filter by class
         if ($request->filled('class_id')) {
-            $query->where('class_id', $request->class_id);
+            $query->where('students.class_id', $request->class_id);
         }
 
         return DataTables::of($query)

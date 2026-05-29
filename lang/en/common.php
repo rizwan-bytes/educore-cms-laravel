@@ -91,4 +91,10 @@ return [
     'admin'          => 'Admin',
     'unauthorized'   => 'You are not authorized to perform this action.',
     'no_classes_assigned' => 'No classes assigned yet. Ask admin to assign subjects.',
+    'optional'       => 'Optional',
+    'required'       => 'Required',
+    'select'         => 'Select',
+    'select_option'  => '— Select —',
+    'all'            => 'All',
+    'none'           => 'None',
 ];
